@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import org.apache.http.client.ClientProtocolException;
 
 import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -28,10 +30,12 @@ public class UserInterface extends Application{
 	
 	final int WIDTH = 500;
 	final int HEIGHT = 350;
-	final int LIMIT = 50;
+	
 	
 	final Insets textFieldInsets = new Insets(0, 55, 0, 55);
 	final Insets listViewInsets = new Insets(0, 55, 10, 55);
+	
+	int limitValue;
 	
 	//Layouts and Containers
 	Stage window;
@@ -47,12 +51,11 @@ public class UserInterface extends Application{
 	Button clearButton;
 	ListView<String> linksView;
 	
+	//Creating soundCloud object
+	SoundCloudFetch soundCloud = new SoundCloudFetch();
 	
 	public static void main(String [] args) throws ClientProtocolException, IOException{
-		
-		SoundCloudFetch soundCloud = new SoundCloudFetch();
 		launch(args);
-
 	}
 
 	@Override
@@ -86,7 +89,9 @@ public class UserInterface extends Application{
 		//ChoiceBox Dropdown
 		dropDownLimits = new ChoiceBox<Integer>();
 		dropDownLimits.getItems().addAll(10, 20, 30, 40, 50);
-		dropDownLimits.getSelectionModel().selectFirst();
+		dropDownLimits.getSelectionModel().select(0);
+		limitValue = dropDownLimits.getSelectionModel().getSelectedItem();
+		
 		
 		//ListView
 		linksView = new ListView<String>();
@@ -103,8 +108,41 @@ public class UserInterface extends Application{
 
 		//Embedding vertical and horizontal layout in mainLayout
 		mainLayout.setTop(verticalLayout);
-		
 		mainLayout.setPadding(new Insets(10, 10, 10, 10));
+		
+		
+		//Button and Event Handlers
+		
+		//Search
+		searchButton.setOnAction(new EventHandler<ActionEvent>(){
+			@Override
+			public void handle(ActionEvent event) {
+				if(checkInput()){
+					try {
+						linksView.getItems().addAll(soundCloud.fetchTracks(userInput.getText(), limitValue));
+					} catch(Exception e){
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		
+		//Clear
+		clearButton.setOnAction(new EventHandler<ActionEvent>(){
+			@Override
+			public void handle(ActionEvent event) {
+				linksView.getItems().clear();
+			}
+		});
+		
+		//Limit Selection
+		dropDownLimits.setOnAction(new EventHandler<ActionEvent>(){
+			@Override
+			public void handle(ActionEvent event){
+				limitValue = dropDownLimits.getSelectionModel().getSelectedItem();
+				System.out.println("Limit Value: " + limitValue);
+			}
+		});
 		
 		//Creating scene
 		mainScene = new Scene(mainLayout, WIDTH, HEIGHT);
@@ -112,6 +150,18 @@ public class UserInterface extends Application{
 		//Setting and showing window
 		window.setScene(mainScene);
 		window.show();
+	}
+	
+	private boolean checkInput(){
+		boolean isCorrect = true;
+		
+		String input = userInput.getText();
+		
+		if(input == null){
+			isCorrect = false;
+		}
+		
+		return isCorrect;
 	}
 	
 	
