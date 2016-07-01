@@ -22,15 +22,20 @@ import com.google.gson.stream.JsonReader;
 
 public class SoundCloudFetch {
 	
+	//API KEYS
 	final String BASE_URL = "https://api.soundcloud.com/tracks";
 	final String CLIENT_ID = "8149d80e337d953a45f37a534404868f";
 	
+	//Method called from UI Class to Fetch Tracks with given query and limit
+	
 	public ArrayList<String> fetchTracks(String query, int limit)  throws ClientProtocolException, IOException {
 		
+		//Empty ArrayList to store urls
 		ArrayList<String> permaLinkUrls = new ArrayList<String>();
 		
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		
+		//Creating request URL with given information
 		String composedUrl = BASE_URL + "?client_id=" + CLIENT_ID + "&q=" + query.replaceAll(" ", "%20") + "&limit=" + limit;
 		
 		HttpGet getRequest = new HttpGet(composedUrl);
@@ -46,10 +51,12 @@ public class SoundCloudFetch {
 		    
 		    String line = null;
 		    
+		    //converting entity response into String "json"
 		    while((line = in.readLine()) != null){
 		    	json += line;
 		    }
 		    
+		    //calls method to parse permaLinkUrls and assigns value to the ArrayList
 		    permaLinkUrls = permaLinkParser(json, permaLinkUrls);
 		    
 		    EntityUtils.consume(entity);
@@ -58,9 +65,12 @@ public class SoundCloudFetch {
 		    response.close();
 		}
 		
+		//returns final ArrayList to UI Class
 		return permaLinkUrls;
 	}
 	
+	
+	//using Gson Google Library, parses JSON for permalink, stores it in ArrayList and returns
 	private ArrayList<String> permaLinkParser(String response, ArrayList<String> permaLinkUrls){
 		JsonElement element = new JsonParser().parse(response);
 		JsonArray array = element.getAsJsonArray();
