@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 
 import org.apache.http.HttpEntity;
@@ -11,12 +12,18 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+
+
 
 public class SoundCloudFetch {
 	
 	final String BASE_URL = "https://api.soundcloud.com/tracks";
 	final String CLIENT_ID = "8149d80e337d953a45f37a534404868f";
-
 	
 	public ArrayList<String> fetchTracks(String query, int limit)  throws ClientProtocolException, IOException {
 		
@@ -24,9 +31,11 @@ public class SoundCloudFetch {
 		
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		
-		String finalUrl = BASE_URL + "?client_id=" + CLIENT_ID + "&q=" + query.replaceAll(" ", "%20") + "&limit=" + limit;
-		HttpGet getRequest = new HttpGet(finalUrl);
+		String composedUrl = BASE_URL + "?client_id=" + CLIENT_ID + "&q=" + query.replaceAll(" ", "%20") + "&limit=" + limit;
+		
+		HttpGet getRequest = new HttpGet(composedUrl);
 		CloseableHttpResponse response = httpClient.execute(getRequest);
+		
 		String json = "";
 		
 		try {
@@ -38,21 +47,32 @@ public class SoundCloudFetch {
 		    String line = null;
 		    
 		    while((line = in.readLine()) != null){
-		    	System.out.println(line);
 		    	json += line;
 		    }
 		    
-		    //call JSON Parser
+		    permaLinkUrls = permaLinkParser(json, permaLinkUrls);
 		    
 		    EntityUtils.consume(entity);
-		    
 		    
 		} finally {
 		    response.close();
 		}
 		
 		return permaLinkUrls;
+	}
+	
+	private ArrayList<String> permaLinkParser(String response, ArrayList<String> permaLinkUrls){
+		JsonElement element = new JsonParser().parse(response);
+		JsonArray array = element.getAsJsonArray();
 		
+		for(int i = 0; i < array.size(); i++){
+			JsonObject currentObject = array.get(i).getAsJsonObject().getAsJsonObject();
+			
+			String key = currentObject.get("permalink_url").toString().replaceAll("\"", "");
+			permaLinkUrls.add(key);
+		}
+		
+		return permaLinkUrls;
 		
 	}
 	
