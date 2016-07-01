@@ -33,7 +33,7 @@ public class UserInterface extends Application{
 	
 	
 	final Insets textFieldInsets = new Insets(0, 55, 0, 55);
-	final Insets listViewInsets = new Insets(0, 55, 10, 55);
+	final Insets listViewInsets = new Insets(0, 10, 10, 10);
 	
 	int limitValue;
 	
@@ -60,6 +60,7 @@ public class UserInterface extends Application{
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+
 		window = primaryStage;
 		
 		window.setTitle(TITLE);
@@ -119,7 +120,8 @@ public class UserInterface extends Application{
 			public void handle(ActionEvent event) {
 				if(checkInput()){
 					try {
-						linksView.getItems().addAll(soundCloud.fetchTracks(userInput.getText(), limitValue));
+						ArrayList<String> links = soundCloud.fetchTracks(userInput.getText(), limitValue);
+						appendToListView(links);
 					} catch(Exception e){
 						e.printStackTrace();
 					}
@@ -140,7 +142,6 @@ public class UserInterface extends Application{
 			@Override
 			public void handle(ActionEvent event){
 				limitValue = dropDownLimits.getSelectionModel().getSelectedItem();
-				System.out.println("Limit Value: " + limitValue);
 			}
 		});
 		
@@ -164,6 +165,8 @@ public class UserInterface extends Application{
 		return isCorrect;
 	}
 	
-	
+	private void appendToListView(ArrayList<String> links){
+		linksView.getItems().addAll(links);
+	}
 	
 }
